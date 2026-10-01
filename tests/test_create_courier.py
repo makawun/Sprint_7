@@ -1,7 +1,7 @@
 import allure
 import pytest
 
-from api import create_courier, login_courier, delete_courier
+from api import create_courier
 from constants import (
     ERROR_LOGIN_ALREADY_USED,
     ERROR_NOT_ENOUGH_DATA_CREATE,
@@ -14,11 +14,11 @@ class TestCreateCourier:
     @allure.story("Создание курьера")
     @allure.title("Успешное создание курьера")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_create_courier_success(self, courier_payload):
+    def test_create_courier_success(self, courier_with_cleanup):
         with allure.step("Отправить POST-запрос на создание курьера"):
-            response = create_courier(courier_payload)
+            response = create_courier(courier_with_cleanup)
             allure.attach(
-                str(courier_payload),
+                str(courier_with_cleanup),
                 name="Request Payload",
                 attachment_type=allure.attachment_type.JSON,
             )
@@ -35,14 +35,7 @@ class TestCreateCourier:
         with allure.step('Проверить тело ответа {"ok": true}'):
             assert response.json() == {"ok": True}, \
                 f"Ожидался {{'ok': True}}, получен {response.json()}"
-
-        with allure.step("Удалить созданного курьера"):
-            login_response = login_courier(
-                courier_payload["login"],
-                courier_payload["password"],
-            )
-            courier_id = login_response.json()["id"]
-            delete_courier(courier_id)
+    
 
     @allure.story("Создание курьера")
     @allure.title("Попытка создать дубликат курьера")

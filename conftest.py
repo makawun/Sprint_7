@@ -34,6 +34,14 @@ def created_courier(courier_payload):
         courier_payload["password"],
     )
 
+@pytest.fixture
+def courier_with_cleanup(courier_payload):
+    yield courier_payload
+
+    delete_courier_by_credentials(
+        courier_payload["login"],
+        courier_payload["password"],
+    )
 
 @pytest.fixture
 def order_payload():
