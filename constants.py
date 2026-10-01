@@ -1,7 +1,5 @@
 import pytest
 
-BASE_URL = 'https://qa-scooter.education-services.ru/api/v1'
-
 COLOR_CASES = [
     pytest.param(["BLACK"], id="single_black"),
     pytest.param(["GREY"], id="single_grey"),

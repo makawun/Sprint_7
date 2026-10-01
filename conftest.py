@@ -1,13 +1,6 @@
 import pytest
 import requests
-from constants import BASE_URL
 from helpers import generate_random_string, delete_courier_by_credentials
-
-
-@pytest.fixture(scope="session")
-def base_url():
-    return BASE_URL
-
 
 @pytest.fixture
 def courier_payload():

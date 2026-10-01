@@ -4,6 +4,7 @@ import requests
 
 from conftest import cancel_order
 from constants import COLOR_CASES
+from urls import BASE_URL
 
 
 @allure.epic("API Яндекс.Самокат")
@@ -13,7 +14,7 @@ class TestCreateOrder:
     @allure.title("Создание заказа с цветом: {color}")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.parametrize("color", COLOR_CASES)
-    def test_create_order_with_color_variations(self, base_url, order_payload, color):
+    def test_create_order_with_color_variations(self, order_payload, color):
         with allure.step(f"Сформировать payload с color={color}"):
             payload = order_payload.copy()
             if color is not None:
@@ -27,7 +28,7 @@ class TestCreateOrder:
             )
 
         with allure.step("Отправить POST-запрос на создание заказа"):
-            response = requests.post(f"{base_url}/orders", json=payload)
+            response = requests.post(f"{BASE_URL}/orders", json=payload)
             allure.attach(
                 response.text,
                 name="Response Body",
@@ -50,4 +51,4 @@ class TestCreateOrder:
                 f"получен {type(body['track'])}"
 
         with allure.step("Отменить созданный заказ"):
-            cancel_order(base_url, body["track"])
+            cancel_order(BASE_URL, body["track"])
