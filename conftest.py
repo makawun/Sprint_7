@@ -1,6 +1,7 @@
 import pytest
 import requests
-from helpers import generate_random_string, delete_courier_by_credentials
+from helpers import generate_random_string, delete_courier_by_credentials, cancel_order
+from urls import BASE_URL
 
 @pytest.fixture
 def courier_payload():
@@ -11,8 +12,8 @@ def courier_payload():
     }
 
 @pytest.fixture
-def created_courier(base_url, courier_payload):
-    response = requests.post(f"{base_url}/courier", data=courier_payload)
+def created_courier(courier_payload):
+    response = requests.post(f"{BASE_URL}/courier", data=courier_payload)
     if response.status_code != 201:
         pytest.fail(
             f"Не удалось создать курьера (предусловие): "
@@ -21,20 +22,16 @@ def created_courier(base_url, courier_payload):
 
     yield courier_payload
 
-    delete_courier_by_credentials(
-        base_url,
-        courier_payload["login"],
-        courier_payload["password"],
-    )
+    delete_courier_by_credentials(courier_payload["login"], courier_payload["password"],)
 
 @pytest.fixture
-def login_url(base_url):
-    return f"{base_url}/courier/login"
+def login_url():
+    return f"{BASE_URL}/courier/login"
 
 
-def login_courier(base_url, login, password):
+def login_courier(login, password):
     return requests.post(
-        f"{base_url}/courier/login",
+        f"{BASE_URL}/courier/login",
         data={"login": login, "password": password},
     )
 
@@ -52,12 +49,12 @@ def order_payload():
     }
 
 
-def cancel_order(base_url, track):
-    requests.put(f"{base_url}/orders/cancel", params={"track": track})
+def cancel_order(track):
+    requests.put(f"{BASE_URL}/orders/cancel", params={"track": track})
 
 @pytest.fixture
-def created_order(base_url, order_payload):
-    response = requests.post(f"{base_url}/orders", json=order_payload)
+def created_order(order_payload):
+    response = requests.post(f"{BASE_URL}/orders", json=order_payload)
     if response.status_code != 201:
         pytest.fail(
             f"Не удалось создать заказ (предусловие): "
@@ -67,4 +64,4 @@ def created_order(base_url, order_payload):
     track = response.json()["track"]
     yield track
 
-    requests.put(f"{base_url}/orders/cancel", params={"track": track})
+    requests.put(f"{BASE_URL}/orders/cancel", params={"track": track})

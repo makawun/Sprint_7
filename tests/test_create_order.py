@@ -2,7 +2,7 @@ import allure
 import pytest
 import requests
 
-from conftest import cancel_order
+from helpers import cancel_order
 from constants import COLOR_CASES
 from urls import BASE_URL
 

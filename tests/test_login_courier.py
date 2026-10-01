@@ -2,7 +2,7 @@ import allure
 import pytest
 import requests
 
-from conftest import generate_random_string
+from helpers import generate_random_string
 from urls import BASE_URL
 
 
