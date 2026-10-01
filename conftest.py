@@ -13,8 +13,11 @@ def courier_payload():
 @pytest.fixture
 def created_courier(base_url, courier_payload):
     response = requests.post(f"{base_url}/courier", data=courier_payload)
-    assert response.status_code == 201, \
-        f"Фикстура не смогла создать курьера: {response.status_code} {response.text}"
+    if response.status_code != 201:
+        pytest.fail(
+            f"Не удалось создать курьера (предусловие): "
+            f"{response.status_code} {response.text}"
+        )
 
     yield courier_payload
 
@@ -55,8 +58,11 @@ def cancel_order(base_url, track):
 @pytest.fixture
 def created_order(base_url, order_payload):
     response = requests.post(f"{base_url}/orders", json=order_payload)
-    assert response.status_code == 201, \
-        f"Фикстура не смогла создать заказ: {response.status_code} {response.text}"
+    if response.status_code != 201:
+        pytest.fail(
+            f"Не удалось создать заказ (предусловие): "
+            f"{response.status_code} {response.text}"
+        )
 
     track = response.json()["track"]
     yield track
