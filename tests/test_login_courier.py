@@ -1,9 +1,8 @@
 import allure
 import pytest
-import requests
 
+from api import login_courier
 from helpers import generate_random_string
-from urls import BASE_URL
 
 
 @allure.epic("API Яндекс.Самокат")
@@ -14,12 +13,9 @@ class TestLoginCourier:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_login_courier_success(self, created_courier):
         with allure.step("Отправить POST-запрос на логин курьера"):
-            response = requests.post(
-                f"{BASE_URL}/courier/login",
-                data={
-                    "login": created_courier["login"],
-                    "password": created_courier["password"],
-                },
+            response = login_courier(
+                created_courier["login"],
+                created_courier["password"],
             )
             allure.attach(
                 response.text,
@@ -44,12 +40,9 @@ class TestLoginCourier:
     @allure.severity(allure.severity_level.NORMAL)
     def test_login_courier_returns_id(self, created_courier):
         with allure.step("Отправить POST-запрос на логин курьера"):
-            response = requests.post(
-                f"{BASE_URL}/courier/login",
-                data={
-                    "login": created_courier["login"],
-                    "password": created_courier["password"],
-                },
+            response = login_courier(
+                created_courier["login"],
+                created_courier["password"],
             )
             allure.attach(
                 response.text,
@@ -77,7 +70,7 @@ class TestLoginCourier:
             payload[empty_field] = ""
 
         with allure.step(f"Отправить POST-запрос с пустым '{empty_field}'"):
-            response = requests.post(f"{BASE_URL}/courier/login", data=payload)
+            response = login_courier(payload["login"], payload["password"])
             allure.attach(
                 response.text,
                 name="Response Body",
@@ -94,12 +87,9 @@ class TestLoginCourier:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_login_invalid_password(self, created_courier):
         with allure.step("Отправить логин с правильным login и неправильным password"):
-            response = requests.post(
-                f"{BASE_URL}/courier/login",
-                data={
-                    "login": created_courier["login"],
-                    "password": generate_random_string(),  # другой пароль
-                },
+            response = login_courier(
+                created_courier["login"],
+                generate_random_string(),
             )
             allure.attach(
                 response.text,
@@ -119,12 +109,9 @@ class TestLoginCourier:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_login_invalid_login(self, created_courier):
         with allure.step("Отправить логин с несуществующим login и правильным password"):
-            response = requests.post(
-                f"{BASE_URL}/courier/login",
-                data={
-                    "login": generate_random_string(),  # несуществующий логин
-                    "password": created_courier["password"],
-                },
+            response = login_courier(
+                generate_random_string(),
+                created_courier["password"],
             )
             allure.attach(
                 response.text,
@@ -144,15 +131,13 @@ class TestLoginCourier:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_login_nonexistent_user(self):
         with allure.step("Сформировать данные несуществующего курьера"):
-            payload = {
-                "login": generate_random_string(),
-                "password": generate_random_string(),
-            }
+            login = generate_random_string()
+            password = generate_random_string()
 
         with allure.step("Отправить POST-запрос на логин"):
-            response = requests.post(f"{BASE_URL}/courier/login", data=payload)
+            response = login_courier(login, password)
             allure.attach(
-                str(payload),
+                f'{{"login": "{login}", "password": "{password}"}}',
                 name="Request Payload",
                 attachment_type=allure.attachment_type.JSON,
             )
@@ -175,11 +160,9 @@ class TestLoginCourier:
     @allure.severity(allure.severity_level.MINOR)
     def test_login_message_not_empty(self):
         with allure.step("Отправить логин под несуществующим пользователем"):
-            payload = {
-                "login": generate_random_string(),
-                "password": generate_random_string(),
-            }
-            response = requests.post(f"{BASE_URL}/courier/login", data=payload)
+            login = generate_random_string()
+            password = generate_random_string()
+            response = login_courier(login, password)
             allure.attach(
                 response.text,
                 name="Response Body",
@@ -193,27 +176,15 @@ class TestLoginCourier:
             message = response.json().get("message", "")
             assert message, f"Пустое сообщение об ошибке: {response.json()}"
 
-
     @allure.story("Авторизация курьера")
     @allure.title("Логин без обязательного поля 'login' → 400")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_login_without_login_returns_400(self, created_courier):
         with allure.step("Убрать поле 'login' из payload"):
-            payload = {
-                "password": created_courier["password"],
-            }
-            allure.attach(
-                str(payload),
-                name="Request Payload",
-                attachment_type=allure.attachment_type.JSON,
-            )
+            password = created_courier["password"]
 
         with allure.step("Отправить POST-запрос без поля 'login'"):
-            response = requests.post(
-                f"{BASE_URL}/courier/login",
-                data=payload,
-                timeout=30,
-            )
+            response = login_courier("", password)
             allure.attach(
                 response.text,
                 name="Response Body",
@@ -228,4 +199,4 @@ class TestLoginCourier:
         with allure.step("Проверить наличие message в теле ошибки"):
             assert "message" in response.json(), \
                 f"Ожидалось поле 'message', получено {response.json()}"
-
+            

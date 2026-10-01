@@ -1,6 +1,6 @@
 import allure
-import requests
-from urls import BASE_URL
+
+from api import get_orders
 
 
 @allure.epic("API Яндекс.Самокат")
@@ -11,7 +11,7 @@ class TestGetOrdersList:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_get_orders_returns_200(self):
         with allure.step("Отправить GET-запрос на /orders"):
-            response = requests.get(f"{BASE_URL}/orders")
+            response = get_orders()
             allure.attach(
                 response.text,
                 name="Response Body",
@@ -27,7 +27,7 @@ class TestGetOrdersList:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_get_orders_body_contains_orders_list(self):
         with allure.step("Отправить GET-запрос на /orders"):
-            response = requests.get(f"{BASE_URL}/orders")
+            response = get_orders()
             allure.attach(
                 response.text,
                 name="Response Body",

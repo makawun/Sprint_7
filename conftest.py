@@ -1,7 +1,13 @@
 import pytest
-import requests
-from helpers import generate_random_string, delete_courier_by_credentials, cancel_order
-from urls import BASE_URL
+
+from api import (
+    create_courier,
+    create_order,
+    cancel_order,
+    delete_courier_by_credentials,
+)
+from helpers import generate_random_string
+
 
 @pytest.fixture
 def courier_payload():
@@ -11,9 +17,10 @@ def courier_payload():
         "firstName": generate_random_string(),
     }
 
+
 @pytest.fixture
 def created_courier(courier_payload):
-    response = requests.post(f"{BASE_URL}/courier", data=courier_payload)
+    response = create_courier(courier_payload)
     if response.status_code != 201:
         pytest.fail(
             f"Не удалось создать курьера (предусловие): "
@@ -22,18 +29,11 @@ def created_courier(courier_payload):
 
     yield courier_payload
 
-    delete_courier_by_credentials(courier_payload["login"], courier_payload["password"],)
-
-@pytest.fixture
-def login_url():
-    return f"{BASE_URL}/courier/login"
-
-
-def login_courier(login, password):
-    return requests.post(
-        f"{BASE_URL}/courier/login",
-        data={"login": login, "password": password},
+    delete_courier_by_credentials(
+        courier_payload["login"],
+        courier_payload["password"],
     )
+
 
 @pytest.fixture
 def order_payload():
@@ -49,12 +49,9 @@ def order_payload():
     }
 
 
-def cancel_order(track):
-    requests.put(f"{BASE_URL}/orders/cancel", params={"track": track})
-
 @pytest.fixture
 def created_order(order_payload):
-    response = requests.post(f"{BASE_URL}/orders", json=order_payload)
+    response = create_order(order_payload)
     if response.status_code != 201:
         pytest.fail(
             f"Не удалось создать заказ (предусловие): "
@@ -64,4 +61,4 @@ def created_order(order_payload):
     track = response.json()["track"]
     yield track
 
-    requests.put(f"{BASE_URL}/orders/cancel", params={"track": track})
+    cancel_order(track)

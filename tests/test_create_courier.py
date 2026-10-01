@@ -1,7 +1,7 @@
 import allure
 import pytest
-import requests
-from urls import BASE_URL
+
+from api import create_courier, login_courier, delete_courier
 
 
 @allure.epic("API Яндекс.Самокат")
@@ -12,7 +12,7 @@ class TestCreateCourier:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_courier_success(self, courier_payload):
         with allure.step("Отправить POST-запрос на создание курьера"):
-            response = requests.post(f"{BASE_URL}/courier", data=courier_payload)
+            response = create_courier(courier_payload)
             allure.attach(
                 str(courier_payload),
                 name="Request Payload",
@@ -33,22 +33,19 @@ class TestCreateCourier:
                 f"Ожидался {{'ok': True}}, получен {response.json()}"
 
         with allure.step("Удалить созданного курьера"):
-            login = requests.post(
-                f"{BASE_URL}/courier/login",
-                data={
-                    "login": courier_payload["login"],
-                    "password": courier_payload["password"],
-                },
+            login_response = login_courier(
+                courier_payload["login"],
+                courier_payload["password"],
             )
-            if login.status_code == 200:
-                requests.delete(f"{BASE_URL}/courier/{login.json()['id']}")
+            courier_id = login_response.json()["id"]
+            delete_courier(courier_id)
 
     @allure.story("Создание курьера")
     @allure.title("Попытка создать дубликат курьера")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_create_duplicate_courier_error(self, created_courier):
         with allure.step("Повторно отправить POST с данными существующего курьера"):
-            response = requests.post(f"{BASE_URL}/courier", data=created_courier)
+            response = create_courier(created_courier)
             allure.attach(
                 response.text,
                 name="Response Body",
@@ -73,7 +70,7 @@ class TestCreateCourier:
             del payload[missing_field]
 
         with allure.step(f"Отправить POST-запрос без поля '{missing_field}'"):
-            response = requests.post(f"{BASE_URL}/courier", data=payload)
+            response = create_courier(payload)
             allure.attach(
                 response.text,
                 name="Response Body",
@@ -94,7 +91,7 @@ class TestCreateCourier:
     @allure.severity(allure.severity_level.MINOR)
     def test_duplicate_login_message_not_empty(self, created_courier):
         with allure.step("Повторно отправить POST с существующим логином"):
-            response = requests.post(f"{BASE_URL}/courier", data=created_courier)
+            response = create_courier(created_courier)
             allure.attach(
                 response.text,
                 name="Response Body",

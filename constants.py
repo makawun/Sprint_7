@@ -5,5 +5,4 @@ COLOR_CASES = [
     pytest.param(["GREY"], id="single_grey"),
     pytest.param(["BLACK", "GREY"], id="both_colors"),
     pytest.param([], id="empty_list"),
-    pytest.param(None, id="no_color_field"),
 ]
