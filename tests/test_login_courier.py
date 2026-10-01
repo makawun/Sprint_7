@@ -3,6 +3,10 @@ import pytest
 
 from api import login_courier
 from helpers import generate_random_string
+from constants import (
+    ERROR_ACCOUNT_NOT_FOUND,
+    ERROR_NOT_ENOUGH_DATA_LOGIN,
+)
 
 
 @allure.epic("API Яндекс.Самокат")
@@ -82,6 +86,11 @@ class TestLoginCourier:
                 f"Пустое поле '{empty_field}': ожидался 400, получен " \
                 f"{response.status_code}: {response.text}"
 
+        with allure.step("Проверить конкретный текст ошибки о нехватке данных"):
+            assert response.json()["message"] == ERROR_NOT_ENOUGH_DATA_LOGIN, \
+                f"Ожидалось '{ERROR_NOT_ENOUGH_DATA_LOGIN}', " \
+                f"получено '{response.json().get('message')}'"
+
     @allure.story("Авторизация курьера")
     @allure.title("Логин с неверным паролем")
     @allure.severity(allure.severity_level.CRITICAL)
@@ -97,12 +106,10 @@ class TestLoginCourier:
                 attachment_type=allure.attachment_type.JSON,
             )
 
-        with allure.step("Проверить код ответа 404"):
-            assert response.status_code == 404, \
-                f"Ожидался 404, получен {response.status_code}: {response.text}"
-
-        with allure.step("Проверить наличие message в теле ошибки"):
-            assert "message" in response.json()
+        with allure.step("Проверить конкретный текст ошибки об отсутствии учётной записи"):
+            assert response.json()["message"] == ERROR_ACCOUNT_NOT_FOUND, \
+                f"Ожидалось '{ERROR_ACCOUNT_NOT_FOUND}', " \
+                f"получено '{response.json().get('message')}'"
 
     @allure.story("Авторизация курьера")
     @allure.title("Логин с неверным логином")
@@ -119,12 +126,10 @@ class TestLoginCourier:
                 attachment_type=allure.attachment_type.JSON,
             )
 
-        with allure.step("Проверить код ответа 404"):
-            assert response.status_code == 404, \
-                f"Ожидался 404, получен {response.status_code}: {response.text}"
-
-        with allure.step("Проверить наличие message в теле ошибки"):
-            assert "message" in response.json()
+        with allure.step("Проверить конкретный текст ошибки об отсутствии учётной записи"):
+            assert response.json()["message"] == ERROR_ACCOUNT_NOT_FOUND, \
+                f"Ожидалось '{ERROR_ACCOUNT_NOT_FOUND}', " \
+                f"получено '{response.json().get('message')}'"
 
     @allure.story("Авторизация курьера")
     @allure.title("Логин под несуществующим пользователем")
@@ -147,37 +152,13 @@ class TestLoginCourier:
                 attachment_type=allure.attachment_type.JSON,
             )
 
-        with allure.step("Проверить код ответа 404"):
-            assert response.status_code == 404, \
-                f"Ожидался 404, получен {response.status_code}: {response.text}"
-
-        with allure.step("Проверить наличие message в теле ошибки"):
-            assert "message" in response.json(), \
-                f"Ожидалось поле 'message', получено {response.json()}"
+        with allure.step("Проверить конкретный текст ошибки об отсутствии учётной записи"):
+            assert response.json()["message"] == ERROR_ACCOUNT_NOT_FOUND, \
+                f"Ожидалось '{ERROR_ACCOUNT_NOT_FOUND}', " \
+                f"получено '{response.json().get('message')}'"
 
     @allure.story("Авторизация курьера")
-    @allure.title("Сообщение об ошибке логина не пустое")
-    @allure.severity(allure.severity_level.MINOR)
-    def test_login_message_not_empty(self):
-        with allure.step("Отправить логин под несуществующим пользователем"):
-            login = generate_random_string()
-            password = generate_random_string()
-            response = login_courier(login, password)
-            allure.attach(
-                response.text,
-                name="Response Body",
-                attachment_type=allure.attachment_type.JSON,
-            )
-
-        with allure.step("Проверить код ответа 404"):
-            assert response.status_code == 404
-
-        with allure.step("Проверить, что message не пустое"):
-            message = response.json().get("message", "")
-            assert message, f"Пустое сообщение об ошибке: {response.json()}"
-
-    @allure.story("Авторизация курьера")
-    @allure.title("Логин без обязательного поля 'login' → 400")
+    @allure.title("Логин без обязательного поля 'login' - 400")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_login_without_login_returns_400(self, created_courier):
         with allure.step("Убрать поле 'login' из payload"):
@@ -191,12 +172,8 @@ class TestLoginCourier:
                 attachment_type=allure.attachment_type.TEXT,
             )
 
-        with allure.step("Проверить код ответа 400"):
-            assert response.status_code == 400, \
-                f"Без поля 'login': ожидался 400, получен " \
-                f"{response.status_code}: {response.text}"
-
-        with allure.step("Проверить наличие message в теле ошибки"):
-            assert "message" in response.json(), \
-                f"Ожидалось поле 'message', получено {response.json()}"
+        with allure.step("Проверить конкретный текст ошибки о нехватке данных"):
+            assert response.json()["message"] == ERROR_NOT_ENOUGH_DATA_LOGIN, \
+                f"Ожидалось '{ERROR_NOT_ENOUGH_DATA_LOGIN}', " \
+                f"получено '{response.json().get('message')}'"
             

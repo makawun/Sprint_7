@@ -2,6 +2,10 @@ import allure
 import pytest
 
 from api import create_courier, login_courier, delete_courier
+from constants import (
+    ERROR_LOGIN_ALREADY_USED,
+    ERROR_NOT_ENOUGH_DATA_CREATE,
+)
 
 
 @allure.epic("API Яндекс.Самокат")
@@ -56,9 +60,10 @@ class TestCreateCourier:
             assert response.status_code == 409, \
                 f"Ожидался 409, получен {response.status_code}: {response.text}"
 
-        with allure.step("Проверить наличие message в теле ошибки"):
-            assert "message" in response.json(), \
-                f"Ожидалось поле 'message', получено {response.json()}"
+        with allure.step("Проверить конкретный текст ошибки о дубликате логина"):
+            assert response.json()["message"] == ERROR_LOGIN_ALREADY_USED, \
+                f"Ожидалось '{ERROR_LOGIN_ALREADY_USED}', " \
+                f"получено '{response.json().get('message')}'"
 
     @allure.story("Создание курьера")
     @allure.title("Создание без обязательного поля: {missing_field}")
@@ -82,25 +87,9 @@ class TestCreateCourier:
                 f"Без поля '{missing_field}': ожидался 400, получен " \
                 f"{response.status_code}: {response.text}"
 
-        with allure.step("Проверить наличие message в теле ошибки"):
-            assert "message" in response.json(), \
-                f"Ожидалось поле 'message', получено {response.json()}"
+        with allure.step("Проверить конкретный текст ошибки о нехватке данных"):
+            assert response.json()["message"] == ERROR_NOT_ENOUGH_DATA_CREATE, \
+                f"Ожидалось '{ERROR_NOT_ENOUGH_DATA_CREATE}', " \
+                f"получено '{response.json().get('message')}'"
 
-    @allure.story("Создание курьера")
-    @allure.title("Сообщение об ошибке дубликата не пустое")
-    @allure.severity(allure.severity_level.MINOR)
-    def test_duplicate_login_message_not_empty(self, created_courier):
-        with allure.step("Повторно отправить POST с существующим логином"):
-            response = create_courier(created_courier)
-            allure.attach(
-                response.text,
-                name="Response Body",
-                attachment_type=allure.attachment_type.JSON,
-            )
-
-        with allure.step("Проверить код ответа 409"):
-            assert response.status_code == 409
-
-        with allure.step("Проверить, что message не пустое"):
-            message = response.json().get("message", "")
-            assert message, f"Пустое сообщение об ошибке: {response.json()}"
+ 
