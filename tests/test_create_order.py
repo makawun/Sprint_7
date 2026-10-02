@@ -2,6 +2,7 @@ import allure
 import pytest
 
 from api import create_order, cancel_order
+from data import ORDER_PAYLOAD
 from constants import COLOR_CASES
 
 
@@ -12,10 +13,10 @@ class TestCreateOrder:
     @allure.title("Создание заказа с цветом: {color}")
     @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.parametrize("color", COLOR_CASES)
-    def test_create_order_with_color(self, order_payload, color):
+    def test_create_order_with_color(self, color):
         with allure.step(f"Сформировать payload с color={color}"):
-            payload = order_payload.copy()
-            payload["color"] = color
+            payload = {**ORDER_PAYLOAD, "color": color}
+            response = create_order(payload)
             allure.attach(
                 str(payload),
                 name="Request Payload",
@@ -51,9 +52,9 @@ class TestCreateOrder:
     @allure.story("Создание заказа")
     @allure.title("Создание заказа без поля color")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_create_order_without_color_field(self, order_payload):
+    def test_create_order_without_color_field(self):
         with allure.step("Сформировать payload без поля color"):
-            payload = order_payload.copy()
+            payload = dict(ORDER_PAYLOAD)
             allure.attach(
                 str(payload),
                 name="Request Payload",

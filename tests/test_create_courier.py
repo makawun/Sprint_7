@@ -1,11 +1,9 @@
 import allure
 import pytest
 
+from helpers import make_courier_payload
+from constants import ERROR_LOGIN_ALREADY_USED, ERROR_NOT_ENOUGH_DATA_CREATE
 from api import create_courier
-from constants import (
-    ERROR_LOGIN_ALREADY_USED,
-    ERROR_NOT_ENOUGH_DATA_CREATE,
-)
 
 
 @allure.epic("API Яндекс.Самокат")
@@ -62,9 +60,9 @@ class TestCreateCourier:
     @allure.title("Создание без обязательного поля: {missing_field}")
     @allure.severity(allure.severity_level.NORMAL)
     @pytest.mark.parametrize("missing_field", ["login", "password"])
-    def test_create_courier_missing_required_field(self, courier_payload, missing_field):
-        with allure.step(f"Убрать обязательное поле '{missing_field}' из payload"):
-            payload = courier_payload.copy()
+    def test_create_courier_missing_required_field(self, missing_field):
+        with allure.step(f"Сформировать payload без поля '{missing_field}'"):
+            payload = make_courier_payload()
             del payload[missing_field]
 
         with allure.step(f"Отправить POST-запрос без поля '{missing_field}'"):
